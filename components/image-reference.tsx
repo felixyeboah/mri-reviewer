@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { imageToSvg } from "@/lib/image-to-svg";
 
 export interface Region {
   name: string;
@@ -75,12 +76,21 @@ const MARKER_COLORS = [
 
 export function ImageReference({ imageUrl, regions }: ImageReferenceProps) {
   const [activeRegion, setActiveRegion] = useState<number | null>(null);
-  const [imageLoaded, setImageLoaded] = useState(false);
+  const [svgContent, setSvgContent] = useState<string | null>(null);
+  const [isTracing, setIsTracing] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setActiveRegion(null);
-    setImageLoaded(false);
+    setSvgContent(null);
+
+    if (!imageUrl) return;
+
+    setIsTracing(true);
+    imageToSvg(imageUrl)
+      .then((svg) => setSvgContent(svg))
+      .catch((err) => console.error("SVG tracing failed:", err))
+      .finally(() => setIsTracing(false));
   }, [imageUrl]);
 
   const handleRegionClick = useCallback((index: number) => {
@@ -112,21 +122,27 @@ export function ImageReference({ imageUrl, regions }: ImageReferenceProps) {
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        {/* Interactive image with overlay markers */}
+        {/* SVG traced image with overlay markers */}
         <div
           ref={containerRef}
           className="relative w-full overflow-hidden rounded-lg border"
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={imageUrl}
-            alt="Uploaded medical image"
-            className="block w-full object-contain"
-            onLoad={() => setImageLoaded(true)}
-          />
+          {isTracing && (
+            <div className="flex items-center justify-center py-20 text-sm text-muted-foreground">
+              <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-primary mr-2" />
+              Generating vector trace…
+            </div>
+          )}
 
-          {/* Markers as absolutely positioned elements — no SVG distortion */}
-          {imageLoaded &&
+          {svgContent && (
+            <div
+              className="w-full [&>svg]:block [&>svg]:w-full [&>svg]:h-auto"
+              dangerouslySetInnerHTML={{ __html: svgContent }}
+            />
+          )}
+
+          {/* Markers as absolutely positioned elements */}
+          {svgContent &&
             regions.map((region, i) => {
               const color = MARKER_COLORS[i % MARKER_COLORS.length];
               const isActive = activeRegion === i;
