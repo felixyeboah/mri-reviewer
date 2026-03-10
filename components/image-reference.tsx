@@ -1,10 +1,14 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
+import dynamic from "next/dynamic";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { imageToSvg } from "@/lib/image-to-svg";
+
+const MriScene = dynamic(() => import("@/components/mri-scene"), {
+  ssr: false,
+});
 
 export interface Region {
   name: string;
@@ -76,22 +80,7 @@ const MARKER_COLORS = [
 
 export function ImageReference({ imageUrl, regions }: ImageReferenceProps) {
   const [activeRegion, setActiveRegion] = useState<number | null>(null);
-  const [svgContent, setSvgContent] = useState<string | null>(null);
-  const [isTracing, setIsTracing] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setActiveRegion(null);
-    setSvgContent(null);
-
-    if (!imageUrl) return;
-
-    setIsTracing(true);
-    imageToSvg(imageUrl)
-      .then((svg) => setSvgContent(svg))
-      .catch((err) => console.error("SVG tracing failed:", err))
-      .finally(() => setIsTracing(false));
-  }, [imageUrl]);
+  const [extrusionScale, setExtrusionScale] = useState(0.15);
 
   const handleRegionClick = useCallback((index: number) => {
     setActiveRegion((prev) => (prev === index ? null : index));
@@ -102,87 +91,59 @@ export function ImageReference({ imageUrl, regions }: ImageReferenceProps) {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-base">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
-            <circle cx="9" cy="9" r="2" />
-            <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
-          </svg>
-          Image Reference
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+              <circle cx="9" cy="9" r="2" />
+              <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+            </svg>
+            3D Image Reference
+          </CardTitle>
+          <div className="flex items-center gap-2">
+            <label
+              htmlFor="extrusion"
+              className="text-xs text-muted-foreground"
+            >
+              Depth
+            </label>
+            <input
+              id="extrusion"
+              type="range"
+              min="0"
+              max="0.4"
+              step="0.01"
+              value={extrusionScale}
+              onChange={(e) => setExtrusionScale(parseFloat(e.target.value))}
+              className="h-1.5 w-20 cursor-pointer accent-primary"
+            />
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        {/* SVG traced image with overlay markers */}
-        <div
-          ref={containerRef}
-          className="relative w-full overflow-hidden rounded-lg border"
-        >
-          {isTracing && (
-            <div className="flex items-center justify-center py-20 text-sm text-muted-foreground">
-              <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-primary mr-2" />
-              Generating vector trace…
-            </div>
-          )}
+        {/* 3D heightmap scene */}
+        <div className="relative w-full overflow-hidden rounded-lg border">
+          <MriScene
+            imageUrl={imageUrl}
+            regions={regions}
+            activeRegion={activeRegion}
+            onRegionClick={handleRegionClick}
+            extrusionScale={extrusionScale}
+          />
 
-          {svgContent && (
-            <div
-              className="w-full [&>svg]:block [&>svg]:w-full [&>svg]:h-auto"
-              dangerouslySetInnerHTML={{ __html: svgContent }}
-            />
-          )}
-
-          {/* Markers as absolutely positioned elements */}
-          {svgContent &&
-            regions.map((region, i) => {
-              const color = MARKER_COLORS[i % MARKER_COLORS.length];
-              const isActive = activeRegion === i;
-
-              return (
-                <button
-                  key={i}
-                  className={cn(
-                    "absolute flex items-center justify-center rounded-full border-2 border-white text-white text-[11px] font-bold shadow-md transition-all duration-200 -translate-x-1/2 -translate-y-1/2",
-                    isActive ? "h-9 w-9 z-20" : "h-7 w-7 z-10"
-                  )}
-                  style={{
-                    left: `${region.x}%`,
-                    top: `${region.y}%`,
-                    backgroundColor: isActive ? color : `${color}cc`,
-                  }}
-                  onClick={() => handleRegionClick(i)}
-                >
-                  {i + 1}
-
-                  {/* Pulse ring */}
-                  {isActive && (
-                    <span
-                      className="absolute inset-0 animate-ping rounded-full border-2 opacity-40"
-                      style={{ borderColor: color }}
-                    />
-                  )}
-                </button>
-              );
-            })}
-
-          {/* Active region tooltip */}
+          {/* Active region tooltip (outside canvas for reliability) */}
           {activeRegion !== null && regions[activeRegion] && (
-            <div
-              className="absolute z-30 w-56 rounded-lg border bg-popover/95 p-3 text-xs text-popover-foreground shadow-xl backdrop-blur-sm"
-              style={{
-                left: `clamp(8px, ${regions[activeRegion].x}%, calc(100% - 232px))`,
-                top: `${Math.min(regions[activeRegion].y + 4, 80)}%`,
-              }}
-            >
+            <div className="absolute bottom-3 left-3 z-30 w-56 rounded-lg border bg-popover/95 p-3 text-xs text-popover-foreground shadow-xl backdrop-blur-sm">
               <div className="flex items-center gap-2">
                 <span
                   className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
