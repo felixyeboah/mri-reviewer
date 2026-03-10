@@ -2,6 +2,7 @@ import { Geist_Mono } from "next/font/google"
 
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
+import { Toaster } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils";
 
 const geistMono = Geist_Mono({
@@ -21,7 +22,10 @@ export default function RootLayout({
       className={cn("antialiased", geistMono.variable, "font-sans")}
     >
       <body>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          {children}
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   )
