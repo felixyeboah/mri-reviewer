@@ -2,6 +2,9 @@
 
 import { useChat } from "@ai-sdk/react";
 import { useCallback, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { toast } from "sonner";
 import { UploadZone } from "@/components/upload-zone";
 import { AnalysisDisplay } from "@/components/analysis-display";
 import { ImageReference, extractRegions } from "@/components/image-reference";
@@ -38,13 +41,30 @@ async function convertFilesToDataURLs(
   );
 }
 
-export default function Page() {
+function extractTitle(analysisText: string): string {
+  const regionMatch = analysisText.match(
+    /\*\*Anatomical Region:\*\*\s*(.+)/
+  );
+  if (regionMatch) return regionMatch[1].trim();
+
+  const modalityMatch = analysisText.match(/\*\*Modality:\*\*\s*(.+)/);
+  if (modalityMatch) return modalityMatch[1].trim();
+
+  return "Medical Image Review";
+}
+
+export default function NewReviewPage() {
+  const router = useRouter();
   const { messages, sendMessage, status } = useChat();
   const [files, setFiles] = useState<FileList | undefined>(undefined);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
-  // Stores the rendered image URL (works for both images and PDFs rendered to canvas)
-  const [imageForReference, setImageForReference] = useState<string | null>(null);
+  const [imageForReference, setImageForReference] = useState<string | null>(
+    null
+  );
+  const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
 
   const isStreaming = status === "streaming";
   const isLoading = status === "submitted" || isStreaming;
@@ -59,7 +79,6 @@ export default function Page() {
       setPreviewUrl(url);
       setImageForReference(url);
     } else if (file.type === "application/pdf") {
-      // Show PDF icon immediately while rendering
       setPreviewUrl("pdf");
       pdfToImage(file)
         .then((renderedImage) => {
@@ -76,6 +95,10 @@ export default function Page() {
     if (!files || files.length === 0) return;
 
     const fileParts = await convertFilesToDataURLs(files);
+    // Store the data URL for saving later
+    if (fileParts[0]) {
+      setImageDataUrl(fileParts[0].url);
+    }
 
     sendMessage({
       role: "user",
@@ -91,6 +114,8 @@ export default function Page() {
     setPreviewUrl(null);
     setFileName(null);
     setImageForReference(null);
+    setImageDataUrl(null);
+    setIsSaved(false);
   }, []);
 
   const latestAnalysis = messages.filter((m) => m.role === "assistant").pop();
@@ -103,17 +128,73 @@ export default function Page() {
   const hasAnalysis = analysisText.length > 0 || isLoading;
   const hasFile = !!files;
   const regions = extractRegions(analysisText);
+  const analysisComplete = analysisText.length > 0 && !isStreaming;
+
+  const handleSave = useCallback(async () => {
+    if (!fileName || !analysisText) return;
+
+    setIsSaving(true);
+    try {
+      const res = await fetch("/api/reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: extractTitle(analysisText),
+          fileName,
+          imageUrl: imageDataUrl || imageForReference || "",
+          analysisText,
+          regions,
+        }),
+      });
+
+      if (res.ok) {
+        const saved = await res.json();
+        setIsSaved(true);
+        toast.success("Review saved successfully");
+        router.push(`/reviews/${saved.id}`);
+      } else {
+        toast.error("Failed to save review");
+      }
+    } catch {
+      toast.error("Failed to save review");
+    } finally {
+      setIsSaving(false);
+    }
+  }, [fileName, analysisText, imageDataUrl, imageForReference, regions, router]);
 
   // Full-page upload view when no file selected and no analysis
   if (!hasFile && !hasAnalysis) {
     return (
-      <UploadZone
-        onFileSelect={handleFileSelect}
-        previewUrl={previewUrl}
-        fileName={fileName}
-        isAnalyzing={false}
-        fullPage
-      />
+      <div className="relative">
+        <div className="absolute left-6 top-6 z-10">
+          <Link href="/">
+            <Button variant="ghost" size="sm" className="gap-1.5">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="m12 19-7-7 7-7" />
+                <path d="M19 12H5" />
+              </svg>
+              Back
+            </Button>
+          </Link>
+        </div>
+        <UploadZone
+          onFileSelect={handleFileSelect}
+          previewUrl={previewUrl}
+          fileName={fileName}
+          isAnalyzing={false}
+          fullPage
+        />
+      </div>
     );
   }
 
@@ -129,9 +210,21 @@ export default function Page() {
               AI-powered medical image analysis
             </p>
           </div>
-          <Button variant="outline" size="sm" onClick={handleReset}>
-            New Analysis
-          </Button>
+          <div className="flex items-center gap-2">
+            {analysisComplete && !isSaved && (
+              <Button size="sm" onClick={handleSave} disabled={isSaving}>
+                {isSaving ? "Saving…" : "Save Review"}
+              </Button>
+            )}
+            <Button variant="outline" size="sm" onClick={handleReset}>
+              New Analysis
+            </Button>
+            <Link href="/">
+              <Button variant="ghost" size="sm">
+                Home
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
 
