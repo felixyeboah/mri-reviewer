@@ -5,6 +5,8 @@ import {
   convertToModelMessages,
 } from "ai";
 import { google } from "@ai-sdk/google";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 import { SYSTEM_PROMPT } from "@/lib/constants";
 
 export const maxDuration = 60;
@@ -55,6 +57,11 @@ function fixDataUrls(messages: ModelMessage[]): ModelMessage[] {
 }
 
 export async function POST(req: Request) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
   const { messages }: { messages: UIMessage[] } = await req.json();
 
   const modelMessages = await convertToModelMessages(messages);
