@@ -1,398 +1,310 @@
 import Link from "next/link"
+import Image from "next/image"
+import { headers } from "next/headers"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
   AiBrain01Icon,
-  Upload03Icon,
-  SparklesIcon,
-  Target02Icon,
-  SecurityCheckIcon,
   ArrowRight01Icon,
 } from "@hugeicons/core-free-icons"
-import { Button } from "@/components/ui/button"
+import { auth } from "@/lib/auth"
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const session = await auth.api.getSession({ headers: await headers() })
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="relative min-h-screen bg-background text-foreground overflow-hidden">
+      {/* Background grid */}
+      <div
+        className="pointer-events-none fixed inset-0 opacity-[0.03]"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px)",
+          backgroundSize: "64px 64px",
+        }}
+      />
+
       {/* Nav */}
-      <nav className="flex items-center justify-between px-6 py-4 md:px-12 lg:px-20">
-        <div className="flex items-center gap-2">
-          <HugeiconsIcon icon={AiBrain01Icon} className="size-5" />
+      <nav className="relative z-10 flex items-center justify-between px-6 py-5 md:px-12 lg:px-20">
+        <div className="flex items-center gap-2.5">
+          <div className="flex size-7 items-center justify-center rounded-md border border-border bg-muted/50">
+            <HugeiconsIcon icon={AiBrain01Icon} className="size-4" />
+          </div>
           <span className="text-sm font-semibold tracking-tight">
             MRI Reviewer
           </span>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/auth/login">Sign in</Link>
-          </Button>
-          <Button size="sm" asChild>
-            <Link href="/auth/register">Get Started</Link>
-          </Button>
+        <div className="flex items-center gap-3">
+          {session ? (
+            <>
+              <span className="text-xs text-muted-foreground">
+                {session.user.name}
+              </span>
+              <Link
+                href="/reviews"
+                className="inline-flex h-8 items-center rounded-md border border-border bg-foreground px-4 text-xs font-medium text-background transition-colors hover:bg-foreground/90"
+              >
+                Dashboard
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/auth/login"
+                className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+              >
+                Sign in
+              </Link>
+              <Link
+                href="/auth/register"
+                className="inline-flex h-8 items-center rounded-md border border-border bg-foreground px-4 text-xs font-medium text-background transition-colors hover:bg-foreground/90"
+              >
+                Get Started
+              </Link>
+            </>
+          )}
         </div>
       </nav>
 
       {/* Hero */}
-      <section className="mx-auto max-w-3xl px-6 pt-24 pb-20 text-center md:pt-32 md:pb-28">
-        <div className="mb-6 inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs text-muted-foreground">
-          AI-Powered Radiology Analysis
+      <section className="relative z-10 mx-auto max-w-5xl px-6 pt-16 md:pt-24">
+        <div className="flex flex-col items-center text-center">
+          {/* Status badge */}
+          <div className="mb-8 flex items-center gap-2 rounded-full border border-border/50 bg-muted/30 px-4 py-1.5">
+            <span className="relative flex size-1.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex size-1.5 rounded-full bg-emerald-500" />
+            </span>
+            <span className="text-[11px] text-muted-foreground">
+              3D Heightmap Visualization + AI Analysis
+            </span>
+          </div>
+
+          {/* Headline */}
+          <h1 className="max-w-2xl text-3xl font-bold leading-[1.15] tracking-tight md:text-5xl">
+            Medical imaging,
+            <br />
+            <span className="text-muted-foreground">rendered in depth.</span>
+          </h1>
+
+          <p className="mx-auto mt-6 max-w-md text-sm leading-relaxed text-muted-foreground">
+            Upload any MRI, CT, or X-ray. Get a 3D heightmap you can rotate,
+            slice, and measure — with AI-generated anatomical analysis in seconds.
+          </p>
+
+          {/* CTA */}
+          <div className="mt-8 flex items-center gap-3">
+            <Link
+              href="/reviews/new"
+              className="group inline-flex h-10 items-center gap-2 rounded-lg bg-foreground px-6 text-sm font-medium text-background transition-all hover:bg-foreground/90"
+            >
+              Start Analysis
+              <HugeiconsIcon
+                icon={ArrowRight01Icon}
+                className="size-4 transition-transform group-hover:translate-x-0.5"
+              />
+            </Link>
+            <Link
+              href="/reviews"
+              className="inline-flex h-10 items-center rounded-lg border border-border px-5 text-sm text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground"
+            >
+              View Reviews
+            </Link>
+          </div>
         </div>
 
-        <h1 className="text-xl leading-[1.1] font-bold tracking-tight md:text-3xl">
-          Every Scan Reviewed.
+        {/* Product Screenshot — the hero */}
+        <div className="relative mt-16 md:mt-20">
+          {/* Glow behind screenshot */}
+          <div className="absolute -inset-4 rounded-3xl bg-gradient-to-b from-cyan-500/5 via-transparent to-transparent blur-2xl" />
+          <div className="absolute inset-x-0 -bottom-8 h-32 bg-gradient-to-t from-background to-transparent" />
+
+          {/* Browser chrome */}
+          <div className="relative overflow-hidden rounded-xl border border-border/60 bg-background shadow-2xl shadow-black/20">
+            <div className="flex items-center gap-2 border-b border-border/50 bg-muted/30 px-4 py-2.5">
+              <div className="flex gap-1.5">
+                <div className="size-2 rounded-full bg-foreground/10" />
+                <div className="size-2 rounded-full bg-foreground/10" />
+                <div className="size-2 rounded-full bg-foreground/10" />
+              </div>
+              <div className="ml-2 flex h-5 flex-1 items-center rounded-md bg-foreground/5 px-3">
+                <span className="text-[10px] text-muted-foreground/50">
+                  mri-reviewer.app/reviews/1
+                </span>
+              </div>
+            </div>
+            <Image
+              src="/images/hero-image.png"
+              alt="MRI Reviewer — 3D heightmap visualization with AI analysis"
+              width={1920}
+              height={1080}
+              className="block w-full"
+              priority
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Capabilities — tight grid */}
+      <section className="relative z-10 mx-auto mt-32 max-w-5xl px-6">
+        <div className="mb-10 flex items-center gap-3">
+          <div className="h-px flex-1 bg-border/50" />
+          <span className="text-[10px] font-medium tracking-[0.2em] uppercase text-muted-foreground">
+            Capabilities
+          </span>
+          <div className="h-px flex-1 bg-border/50" />
+        </div>
+
+        <div className="grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-border/60 bg-border/60 sm:grid-cols-2 lg:grid-cols-3">
+          {[
+            {
+              label: "3D Heightmap",
+              desc: "Pixel brightness becomes elevation. Rotate, zoom, and pan to explore tissue density as a tactile 3D surface.",
+              tag: "React Three Fiber",
+            },
+            {
+              label: "AI Analysis",
+              desc: "Gemini 3.1 Pro vision identifies modality, maps anatomical regions, and generates structured clinical reports.",
+              tag: "< 30s",
+            },
+            {
+              label: "Region Mapping",
+              desc: "Click numbered markers to zoom into specific anatomical regions with detailed observations and findings.",
+              tag: "x,y coordinates",
+            },
+            {
+              label: "Color Modes",
+              desc: "Switch between grayscale, heatmap, and contour views to highlight different tissue characteristics.",
+              tag: "3 modes",
+            },
+            {
+              label: "Measurement",
+              desc: "Click two points on the 3D surface to measure distance. Crosshair slices show intensity profiles.",
+              tag: "Interactive",
+            },
+            {
+              label: "Privacy First",
+              desc: "All image processing happens client-side. Your medical data never leaves your browser.",
+              tag: "Client-side",
+            },
+          ].map((cap) => (
+            <div
+              key={cap.label}
+              className="group flex flex-col justify-between bg-background p-6 transition-colors hover:bg-muted/30"
+            >
+              <div>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold">{cap.label}</h3>
+                  <span className="rounded-full bg-muted/50 px-2 py-0.5 text-[9px] text-muted-foreground">
+                    {cap.tag}
+                  </span>
+                </div>
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                  {cap.desc}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* How it works — horizontal steps */}
+      <section className="relative z-10 mx-auto mt-32 max-w-5xl px-6">
+        <div className="mb-10 flex items-center gap-3">
+          <div className="h-px flex-1 bg-border/50" />
+          <span className="text-[10px] font-medium tracking-[0.2em] uppercase text-muted-foreground">
+            Workflow
+          </span>
+          <div className="h-px flex-1 bg-border/50" />
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          {[
+            {
+              step: "01",
+              title: "Upload",
+              desc: "Drag and drop any MRI, CT, X-ray, or PDF. Supports PNG, JPEG, WebP up to 20 MB.",
+            },
+            {
+              step: "02",
+              title: "Analyze",
+              desc: "AI processes the image, identifies the modality, maps anatomical regions with precise coordinates.",
+            },
+            {
+              step: "03",
+              title: "Explore",
+              desc: "Interact with the 3D heightmap. Click regions, adjust depth, switch color modes, measure distances.",
+            },
+          ].map((s, i) => (
+            <div key={s.step} className="relative">
+              {i < 2 && (
+                <div className="absolute top-4 right-0 hidden h-px w-6 translate-x-full bg-border/50 md:block" />
+              )}
+              <div className="rounded-xl border border-border/60 bg-background p-6">
+                <span className="text-[10px] font-medium text-muted-foreground/50">
+                  {s.step}
+                </span>
+                <h3 className="mt-2 text-lg font-bold tracking-tight">
+                  {s.title}
+                </h3>
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                  {s.desc}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Stats bar */}
+      <section className="relative z-10 mx-auto mt-32 max-w-5xl px-6">
+        <div className="grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-border/60 bg-border/60 sm:grid-cols-4">
+          {[
+            { value: "< 30s", label: "Analysis time" },
+            { value: "6+", label: "Modalities" },
+            { value: "3D", label: "Heightmap viewer" },
+            { value: "100%", label: "Client-side" },
+          ].map((stat) => (
+            <div
+              key={stat.label}
+              className="bg-background px-6 py-5 text-center"
+            >
+              <p className="text-xl font-bold tracking-tight">{stat.value}</p>
+              <p className="mt-0.5 text-[10px] text-muted-foreground">
+                {stat.label}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="relative z-10 mx-auto mt-32 max-w-xl px-6 pb-32 text-center">
+        <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
+          See your scans
           <br />
-          <span className="text-muted-foreground">Nothing Missed.</span>
-        </h1>
-
-        <p className="mx-auto mt-6 max-w-lg text-sm text-muted-foreground">
-          Upload an MRI, CT, or X-ray and get structured analysis with
-          anatomical region mapping in seconds. Built for radiologists,
-          researchers, and medical students.
+          <span className="text-muted-foreground">like never before.</span>
+        </h2>
+        <p className="mt-4 text-sm text-muted-foreground">
+          No account required. Upload an image and explore in 3D instantly.
         </p>
-
-        <div className="mt-8 flex items-center justify-center gap-3">
+        <div className="mt-8">
           <Link
             href="/reviews/new"
-            className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="group inline-flex h-11 items-center gap-2 rounded-lg bg-foreground px-7 text-sm font-medium text-background transition-all hover:bg-foreground/90"
           >
             Start Free Analysis
-            <HugeiconsIcon icon={ArrowRight01Icon} className="size-4" />
-          </Link>
-          <Link
-            href="/reviews"
-            className="inline-flex h-10 items-center rounded-lg border border-border px-5 text-sm font-medium transition-colors hover:bg-muted"
-          >
-            View Past Reviews
-          </Link>
-        </div>
-      </section>
-
-      {/* Product Screenshot */}
-      <section className="mx-auto max-w-5xl px-6">
-        <div className="overflow-hidden rounded-xl border border-border bg-muted/50 shadow-2xl shadow-black/5">
-          <div className="flex items-center gap-1.5 border-b border-border px-4 py-3">
-            <div className="size-2.5 rounded-full bg-foreground/10" />
-            <div className="size-2.5 rounded-full bg-foreground/10" />
-            <div className="size-2.5 rounded-full bg-foreground/10" />
-            <div className="ml-3 h-5 w-48 rounded-md bg-foreground/5" />
-          </div>
-          <div className="grid grid-cols-1 gap-px bg-border md:grid-cols-2">
-            {/* Left panel - Image preview mock */}
-            <div className="flex flex-col items-center justify-center bg-background px-8 py-16">
-              <div className="relative">
-                <div className="size-48 rounded-2xl bg-muted" />
-                {/* Region markers */}
-                <div className="absolute top-4 left-8 flex size-5 items-center justify-center rounded-full bg-chart-3 text-[10px] font-bold text-white">
-                  1
-                </div>
-                <div className="absolute top-12 right-6 flex size-5 items-center justify-center rounded-full bg-chart-1 text-[10px] font-bold text-white">
-                  2
-                </div>
-                <div className="absolute bottom-8 left-12 flex size-5 items-center justify-center rounded-full bg-chart-5 text-[10px] font-bold text-white">
-                  3
-                </div>
-              </div>
-              <div className="mt-4 flex gap-2">
-                <div className="rounded-md bg-chart-3/10 px-2 py-1 text-[10px] font-medium text-chart-3">
-                  Frontal Lobe
-                </div>
-                <div className="rounded-md bg-chart-1/10 px-2 py-1 text-[10px] font-medium text-chart-1">
-                  Ventricle
-                </div>
-                <div className="rounded-md bg-chart-5/10 px-2 py-1 text-[10px] font-medium text-chart-5">
-                  Cerebellum
-                </div>
-              </div>
-            </div>
-            {/* Right panel - Analysis mock */}
-            <div className="space-y-4 bg-background px-8 py-8">
-              <div className="space-y-2">
-                <div className="h-3 w-28 rounded bg-foreground/10" />
-                <div className="h-2.5 w-full rounded bg-foreground/5" />
-                <div className="h-2.5 w-4/5 rounded bg-foreground/5" />
-                <div className="h-2.5 w-3/5 rounded bg-foreground/5" />
-              </div>
-              <div className="space-y-2">
-                <div className="h-3 w-36 rounded bg-foreground/10" />
-                <div className="h-2.5 w-full rounded bg-foreground/5" />
-                <div className="h-2.5 w-5/6 rounded bg-foreground/5" />
-              </div>
-              <div className="space-y-2">
-                <div className="h-3 w-24 rounded bg-foreground/10" />
-                <div className="h-2.5 w-full rounded bg-foreground/5" />
-                <div className="h-2.5 w-2/3 rounded bg-foreground/5" />
-                <div className="h-2.5 w-4/5 rounded bg-foreground/5" />
-              </div>
-              <div className="space-y-2">
-                <div className="h-3 w-32 rounded bg-foreground/10" />
-                <div className="h-2.5 w-full rounded bg-foreground/5" />
-                <div className="h-2.5 w-3/4 rounded bg-foreground/5" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Strip */}
-      <section className="mx-auto mt-20 max-w-4xl px-6">
-        <div className="grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            {
-              icon: Upload03Icon,
-              title: "Drag & Drop",
-              desc: "MRI, CT, X-ray, or PDF",
-            },
-            {
-              icon: SparklesIcon,
-              title: "AI Analysis",
-              desc: "Gemini 3.1 Pro vision",
-            },
-            {
-              icon: Target02Icon,
-              title: "Region Mapping",
-              desc: "Precise x,y coordinates",
-            },
-            {
-              icon: SecurityCheckIcon,
-              title: "Save & Review",
-              desc: "Persistent review history",
-            },
-          ].map((f) => (
-            <div
-              key={f.title}
-              className="flex flex-col gap-1 bg-background px-5 py-5"
-            >
-              <div className="mb-1 text-muted-foreground">
-                <HugeiconsIcon icon={f.icon} className="size-4" />
-              </div>
-              <span className="text-sm font-medium">{f.title}</span>
-              <span className="text-xs text-muted-foreground">{f.desc}</span>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* How it Works */}
-      <section className="mx-auto mt-28 max-w-5xl px-6">
-        <div className="text-center">
-          <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">
-            How it works
-          </p>
-          <h2 className="mt-3 text-3xl font-bold tracking-tight md:text-4xl">
-            From upload to insight
-            <br />
-            in three steps.
-          </h2>
-        </div>
-
-        {/* Step cards - 2 column top, 1 wide bottom */}
-        <div className="mt-14 grid grid-cols-1 gap-4 md:grid-cols-2">
-          {/* Card 1: Upload */}
-          <div className="overflow-hidden rounded-xl border border-border bg-background">
-            <div className="px-6 pt-6 pb-4">
-              <h3 className="text-lg font-bold">Upload Your Scan</h3>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Drag and drop any medical image. We handle
-                <br className="hidden sm:block" /> MRI, CT, X-ray, and PDF
-                reports.
-              </p>
-            </div>
-            {/* Visual: upload flow diagram */}
-            <div className="flex flex-col items-center gap-3 px-6 pt-4 pb-8">
-              {/* Drop zone mock */}
-              <div className="flex w-full max-w-xs flex-col items-center gap-2 rounded-lg border-2 border-dashed border-border px-6 py-8">
-                <HugeiconsIcon
-                  icon={Upload03Icon}
-                  className="size-6 text-muted-foreground"
-                />
-                <span className="text-xs font-medium">Drop your file here</span>
-                <span className="text-[10px] text-muted-foreground">
-                  PNG, JPEG, WebP, PDF up to 20 MB
-                </span>
-              </div>
-              {/* File chips */}
-              <div className="flex gap-2">
-                <div className="flex items-center gap-1.5 rounded-md border border-border bg-muted/50 px-2.5 py-1.5">
-                  <div className="size-3 rounded-sm bg-chart-3/30" />
-                  <span className="text-[10px] font-medium">brain_mri.png</span>
-                  <span className="text-[10px] text-emerald-600">&#10003;</span>
-                </div>
-                <div className="flex items-center gap-1.5 rounded-md border border-border bg-muted/50 px-2.5 py-1.5">
-                  <div className="size-3 rounded-sm bg-chart-1/30" />
-                  <span className="text-[10px] font-medium">
-                    chest_xray.pdf
-                  </span>
-                  <span className="text-[10px] text-emerald-600">&#10003;</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Card 2: AI Analysis */}
-          <div className="overflow-hidden rounded-xl border border-border bg-background">
-            <div className="px-6 pt-6 pb-4">
-              <h3 className="text-lg font-bold">AI Reviews the Image</h3>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Gemini 3.1 Pro identifies modality, maps regions,
-                <br className="hidden sm:block" /> and generates a structured
-                report.
-              </p>
-            </div>
-            {/* Visual: analysis pipeline flowchart */}
-            <div className="flex flex-col items-center gap-0 px-6 pt-4 pb-8">
-              {/* Step nodes */}
-              <div className="flex items-center gap-2 rounded-md border border-border px-3 py-2">
-                <div className="flex size-5 items-center justify-center rounded-full bg-chart-3 text-[9px] font-bold text-white">
-                  <HugeiconsIcon icon={SparklesIcon} className="size-3" />
-                </div>
-                <span className="text-xs font-medium">
-                  Identify Imaging Modality
-                </span>
-              </div>
-              <div className="h-4 w-px bg-border" />
-              <div className="flex items-center gap-2 rounded-md border border-border px-3 py-2">
-                <div className="flex size-5 items-center justify-center rounded-full bg-chart-1 text-[9px] font-bold text-white">
-                  <HugeiconsIcon icon={Target02Icon} className="size-3" />
-                </div>
-                <span className="text-xs font-medium">
-                  Map Anatomical Regions
-                </span>
-                <span className="rounded bg-chart-1/10 px-1.5 py-0.5 text-[9px] font-medium text-chart-1">
-                  x,y%
-                </span>
-              </div>
-              <div className="h-4 w-px bg-border" />
-              <div className="flex items-center gap-2 rounded-md border border-border px-3 py-2">
-                <div className="flex size-5 items-center justify-center rounded-full bg-chart-5 text-[9px] font-bold text-white">
-                  <HugeiconsIcon icon={SecurityCheckIcon} className="size-3" />
-                </div>
-                <span className="text-xs font-medium">
-                  Clinical Findings Report
-                </span>
-              </div>
-              <div className="h-4 w-px bg-border" />
-              {/* Result */}
-              <div className="flex items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 dark:border-emerald-900 dark:bg-emerald-950">
-                <span className="text-xs text-emerald-600">&#10003;</span>
-                <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
-                  Analysis Complete
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Card 3: Explore - full width */}
-          <div className="overflow-hidden rounded-xl border border-border bg-background md:col-span-2">
-            <div className="grid grid-cols-1 md:grid-cols-2">
-              <div className="flex flex-col justify-center px-6 py-6">
-                <h3 className="text-lg font-bold">Explore the Findings</h3>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Interactive markers overlay the image at precise locations.
-                  Click any region to see detailed observations and clinical
-                  notes.
-                </p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <div className="rounded-md bg-chart-3/10 px-2.5 py-1 text-[11px] font-medium text-chart-3">
-                    Frontal Lobe
-                  </div>
-                  <div className="rounded-md bg-chart-1/10 px-2.5 py-1 text-[11px] font-medium text-chart-1">
-                    Left Ventricle
-                  </div>
-                  <div className="rounded-md bg-chart-5/10 px-2.5 py-1 text-[11px] font-medium text-chart-5">
-                    Cerebellum
-                  </div>
-                  <div className="rounded-md bg-chart-2/10 px-2.5 py-1 text-[11px] font-medium text-chart-2">
-                    Temporal Lobe
-                  </div>
-                </div>
-              </div>
-              {/* Visual: interactive scan with markers */}
-              <div className="flex items-center justify-center bg-muted/30 px-8 py-10">
-                <div className="relative">
-                  {/* Scan placeholder */}
-                  <div className="size-52 rounded-2xl bg-gradient-to-br from-muted to-muted/50" />
-                  {/* Crosshair lines */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="absolute h-full w-px bg-foreground/5" />
-                    <div className="absolute h-px w-full bg-foreground/5" />
-                  </div>
-                  {/* Region markers with pulse */}
-                  <div className="absolute top-6 left-10">
-                    <div className="absolute -inset-1.5 animate-ping rounded-full bg-chart-3/20" />
-                    <div className="relative flex size-5 items-center justify-center rounded-full bg-chart-3 text-[9px] font-bold text-white">
-                      1
-                    </div>
-                  </div>
-                  <div className="absolute top-16 right-8">
-                    <div className="flex size-5 items-center justify-center rounded-full bg-chart-1 text-[9px] font-bold text-white">
-                      2
-                    </div>
-                  </div>
-                  <div className="absolute right-12 bottom-12">
-                    <div className="flex size-5 items-center justify-center rounded-full bg-chart-5 text-[9px] font-bold text-white">
-                      3
-                    </div>
-                  </div>
-                  <div className="absolute bottom-6 left-14">
-                    <div className="flex size-5 items-center justify-center rounded-full bg-chart-2 text-[9px] font-bold text-white">
-                      4
-                    </div>
-                  </div>
-                  {/* Tooltip mock */}
-                  <div className="absolute -top-2 left-20 rounded-md border border-border bg-background px-2.5 py-1.5 shadow-sm">
-                    <p className="text-[10px] font-semibold">Frontal Lobe</p>
-                    <p className="text-[9px] text-muted-foreground">
-                      Normal morphology observed
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats */}
-      <section className="mx-auto mt-28 max-w-3xl px-6">
-        <div className="grid grid-cols-3 divide-x divide-border text-center">
-          {[
-            { value: "< 30s", label: "Average analysis time" },
-            { value: "6+", label: "Imaging modalities" },
-            { value: "100%", label: "Client-side privacy" },
-          ].map((stat) => (
-            <div key={stat.label} className="px-4 py-2">
-              <p className="text-2xl font-bold tracking-tight md:text-3xl">
-                {stat.value}
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">{stat.label}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="mx-auto mt-28 max-w-xl px-6 pb-28 text-center">
-        <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
-          Ready to analyze your first scan?
-        </h2>
-        <p className="mt-3 text-sm text-muted-foreground">
-          No account required. Upload an image and get results instantly.
-        </p>
-        <div className="mt-6">
-          <Link
-            href="/reviews/new"
-            className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Start Analysis
-            <HugeiconsIcon icon={ArrowRight01Icon} className="size-4" />
+            <HugeiconsIcon
+              icon={ArrowRight01Icon}
+              className="size-4 transition-transform group-hover:translate-x-0.5"
+            />
           </Link>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border px-6 py-6 md:px-12 lg:px-20">
-        <div className="flex flex-col items-center justify-between gap-3 text-xs text-muted-foreground sm:flex-row">
+      <footer className="relative z-10 border-t border-border/50 px-6 py-6 md:px-12 lg:px-20">
+        <div className="flex flex-col items-center justify-between gap-3 text-[11px] text-muted-foreground/60 sm:flex-row">
           <div className="flex items-center gap-2">
-            <HugeiconsIcon icon={AiBrain01Icon} className="size-4" />
+            <HugeiconsIcon icon={AiBrain01Icon} className="size-3.5" />
             <span>MRI Reviewer</span>
           </div>
           <p>

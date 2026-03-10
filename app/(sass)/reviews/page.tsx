@@ -30,14 +30,14 @@ export default async function Page() {
     <div className="flex min-h-svh flex-col">
       <header className="border-b px-6 py-4">
         <div className="mx-auto flex max-w-5xl items-center justify-between">
-          <div>
+          <Link href="/">
             <h1 className="text-lg font-semibold tracking-tight">
               MRI Reviewer
             </h1>
             <p className="text-sm text-muted-foreground">
               AI-powered medical image analysis
             </p>
-          </div>
+          </Link>
           <Link href="/reviews/new">
             <Button size="sm">New Review</Button>
           </Link>

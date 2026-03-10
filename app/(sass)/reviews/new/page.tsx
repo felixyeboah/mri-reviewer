@@ -167,7 +167,7 @@ export default function NewReviewPage() {
     return (
       <div className="relative">
         <div className="absolute left-6 top-6 z-10">
-          <Link href="/">
+          <Link href="/reviews">
             <Button variant="ghost" size="sm" className="gap-1.5">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -219,9 +219,9 @@ export default function NewReviewPage() {
             <Button variant="outline" size="sm" onClick={handleReset}>
               New Analysis
             </Button>
-            <Link href="/">
+            <Link href="/reviews">
               <Button variant="ghost" size="sm">
-                Home
+                Reviews
               </Button>
             </Link>
           </div>
